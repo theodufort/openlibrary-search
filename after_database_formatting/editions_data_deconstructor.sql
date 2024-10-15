@@ -1,7 +1,7 @@
---Remove unecessary data
+ALTER TABLE editions SET (autovacuum_enabled = false);
 DO $$
 DECLARE
-    batch_size INTEGER := 100000;  -- Number of rows per batch; adjust based on your system's capacity
+    batch_size INTEGER := 10000;  -- Number of rows per batch; adjust based on your system's capacity
     total_rows BIGINT;
     updated_rows BIGINT;
     batch_counter INTEGER := 0;
@@ -59,3 +59,6 @@ BEGIN
     
     RAISE NOTICE 'Update completed. Total time elapsed: %', clock_timestamp() - start_time;
 END $$;
+
+
+ALTER TABLE editions SET (autovacuum_enabled = true);
