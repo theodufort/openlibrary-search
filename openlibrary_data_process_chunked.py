@@ -29,13 +29,16 @@ OUTPUT_PATH = "./data/processed/"
 FILE_IDENTIFIERS = ['authors', 'works', 'editions']
 
 def filter_json_data(json_string):
-    """Filter out unwanted fields from the JSON data."""
+    """Filter out unwanted fields from the JSON data if it's a JSON object."""
     try:
         data = json.loads(json_string)
-        fields_to_remove = ["latest_revision", "last_modified", "type", "works", "created"]
-        for field in fields_to_remove:
-            data.pop(field, None)
-        return json.dumps(data)
+        if isinstance(data, dict):
+            fields_to_remove = ["latest_revision", "last_modified", "type", "works", "created"]
+            for field in fields_to_remove:
+                data.pop(field, None)
+            return json.dumps(data)
+        else:
+            return json_string  # Return original string if it's not a JSON object
     except json.JSONDecodeError:
         return json_string  # Return original string if it's not valid JSON
 
