@@ -33,7 +33,7 @@ def filter_json_data(json_string):
     try:
         data = json.loads(json_string)
         if isinstance(data, dict):
-            fields_to_remove = ["latest_revision", "last_modified", "type", "works", "created"]
+            fields_to_remove = ["latest_revision", "last_modified", "type", "works", "created","source_records", "key", "revision"]
             for field in fields_to_remove:
                 data.pop(field, None)
             return json.dumps(data)
