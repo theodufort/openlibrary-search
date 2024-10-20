@@ -7,6 +7,7 @@ For editions, 3 million lines was about 3.24 gigs and about an hour to load.
 import csv
 import ctypes as ct
 import os
+import json
 
 # Optional if you want to make a smaller copy from the unzipped version for testing
 # sed -i '' '100000,$ d' ./data/unprocessed/ol_dump_editions.txt
@@ -26,6 +27,17 @@ INPUT_PATH = "./data/unprocessed/"
 OUTPUT_PATH = "./data/processed/"
 
 FILE_IDENTIFIERS = ['authors', 'works', 'editions']
+
+def filter_json_data(json_string):
+    """Filter out unwanted fields from the JSON data."""
+    try:
+        data = json.loads(json_string)
+        fields_to_remove = ["latest_revision", "last_modified", "type", "works", "created"]
+        for field in fields_to_remove:
+            data.pop(field, None)
+        return json.dumps(data)
+    except json.JSONDecodeError:
+        return json_string  # Return original string if it's not valid JSON
 
 
 def run():
@@ -59,8 +71,9 @@ def run():
                         csvoutput, delimiter='\t', quotechar='|', quoting=csv.QUOTE_MINIMAL)
 
                 if len(row) > 4:
+                    filtered_json = filter_json_data(row[4])
                     writer.writerow(
-                        [row[0], row[1], row[2], row[3], row[4]])
+                        [row[0], row[1], row[2], row[3], filtered_json])
 
             if csvoutputfile:
                 csvoutputfile.close()
