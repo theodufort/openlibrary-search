@@ -32,13 +32,13 @@ def filter_json_data(json_string):
     """Filter out unwanted fields from the JSON data if it's a JSON object."""
     try:
         data = json.loads(json_string)
-        if isinstance(data, dict):
-            fields_to_remove = ["latest_revision", "last_modified", "type", "works", "created"]
+        if isinstance(data, dict) and data.get('type', '').startswith('/type/'):
+            fields_to_remove = ["latest_revision", "last_modified", "type", "works", "created", "source_records", "key", "revision"]
             for field in fields_to_remove:
                 data.pop(field, None)
             return json.dumps(data)
         else:
-            return json_string  # Return original string if it's not a JSON object
+            return json_string  # Return original string if it's not a JSON object or doesn't have the correct 'type'
     except json.JSONDecodeError:
         return json_string  # Return original string if it's not valid JSON
 
