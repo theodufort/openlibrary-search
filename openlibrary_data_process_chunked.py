@@ -71,6 +71,12 @@ def run():
                     else:
                         writer.writerow([row[0], row[1], row[2], row[3], filtered_json])
 
+                    # Debug print for editions
+                    if identifier == 'editions':
+                        print(f"Debug: Edition row - {row}")
+                        print(f"Debug: Filtered JSON - {filtered_json}")
+                        print(f"Debug: Work key - {work_key}")
+
                 else:
                     writer.writerow(row)  # Write the row as-is if it doesn't have the data column
 
