@@ -35,7 +35,7 @@ def process_text_file(input_text):
 
 if __name__ == "__main__":
     # Replace 'input.txt' with your text file's path
-    with open('input.txt', 'r', encoding='utf-8') as file:
+    with open('ol_dump_editions.txt', 'r', encoding='utf-8') as file:
         input_text = file.read()
 
     processed_data = process_text_file(input_text)
