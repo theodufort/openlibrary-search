@@ -12,3 +12,4 @@ copy_commands.sql
 
 .vscode/settings.json
 .aider*
+.env
