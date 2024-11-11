@@ -57,16 +57,34 @@ VALUES (
     false
 );
 
--- Create temp tables
-CREATE TEMP TABLE temp_authors (data jsonb);
-CREATE TEMP TABLE temp_works (data jsonb);
-CREATE TEMP TABLE temp_editions (data jsonb);
+-- Create temp tables with correct structure matching input files
+CREATE TEMP TABLE temp_authors (
+    type text,
+    key text,
+    revision int,
+    last_modified timestamp,
+    data jsonb
+);
+CREATE TEMP TABLE temp_works (
+    type text,
+    key text,
+    revision int,
+    last_modified timestamp,
+    data jsonb
+);
+CREATE TEMP TABLE temp_editions (
+    type text,
+    key text,
+    revision int,
+    last_modified timestamp,
+    data jsonb
+);
 
 -- Load authors data
 \a
 \t
 \o copy_commands.sql
-SELECT format('\copy temp_authors (data) FROM ''%s'' WITH (FORMAT csv, DELIMITER E''\t'', QUOTE ''|'');', filename) 
+SELECT format('\copy temp_authors FROM ''%s'' WITH (FORMAT csv, DELIMITER E''\t'', QUOTE ''|'');', filename) 
 FROM fileinfo, unnest(filenames) AS filename
 WHERE NOT loaded AND name_of_table = 'authors';
 \o
@@ -74,7 +92,7 @@ WHERE NOT loaded AND name_of_table = 'authors';
 
 INSERT INTO authors (id, name)
 SELECT 
-    (data->>'key')::uuid,
+    substring(key from '/authors/(.*)$')::uuid,
     data->>'name'
 FROM temp_authors;
 
@@ -85,7 +103,7 @@ WHERE name_of_table = 'authors' AND NOT loaded;
 \a
 \t
 \o copy_commands.sql
-SELECT format('\copy temp_works (data) FROM ''%s'' WITH (FORMAT csv, DELIMITER E''\t'', QUOTE ''|'');', filename)
+SELECT format('\copy temp_works FROM ''%s'' WITH (FORMAT csv, DELIMITER E''\t'', QUOTE ''|'');', filename)
 FROM fileinfo, unnest(filenames) AS filename
 WHERE NOT loaded AND name_of_table = 'works';
 \o
@@ -93,8 +111,8 @@ WHERE NOT loaded AND name_of_table = 'works';
 
 INSERT INTO works (id, author_id)
 SELECT 
-    (data->>'key')::uuid,
-    (data->'authors'->0->>'key')::uuid
+    substring(key from '/works/(.*)$')::uuid,
+    substring(data->'authors'->0->>'key' from '/authors/(.*)$')::uuid
 FROM temp_works;
 
 UPDATE fileinfo SET loaded = true, last_modified = current_timestamp
@@ -104,7 +122,7 @@ WHERE name_of_table = 'works' AND NOT loaded;
 \a
 \t
 \o copy_commands.sql
-SELECT format('\copy temp_editions (data) FROM ''%s'' WITH (FORMAT csv, DELIMITER E''\t'', QUOTE ''|'');', filename)
+SELECT format('\copy temp_editions FROM ''%s'' WITH (FORMAT csv, DELIMITER E''\t'', QUOTE ''|'');', filename)
 FROM fileinfo, unnest(filenames) AS filename
 WHERE NOT loaded AND name_of_table = 'books';
 \o
@@ -112,8 +130,8 @@ WHERE NOT loaded AND name_of_table = 'books';
 
 INSERT INTO books (id, work_id, isbn10, isbn13, title, description, language, published_date, page_count)
 SELECT 
-    (data->>'key')::uuid,
-    (data->'works'->0->>'key')::uuid,
+    substring(key from '/books/(.*)$')::uuid,
+    substring(data->'works'->0->>'key' from '/works/(.*)$')::uuid,
     data->'isbn_10'->0#>>'{}',
     data->'isbn_13'->0#>>'{}',
     data->>'title',
