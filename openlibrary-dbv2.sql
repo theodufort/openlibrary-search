@@ -5,13 +5,10 @@
 set client_encoding = 'UTF8';
 
 -- -- create tables
-\i 'db_scripts/schema_new.sql';
+\i 'db_scripts_v2/schema_new.sql';
 
--- create filenames that can be accessed in lieu of parameters
-\i 'db_scripts/tbl_fileinfo.sql';
-
--- load in data
-\i 'db_scripts/load.sql';
+-- Load the data
+\i 'db_scripts_v2/load_data.sql';
 
 -- finally remove temp table
 drop table fileinfo;
