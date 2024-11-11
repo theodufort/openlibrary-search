@@ -9,9 +9,9 @@ CREATE TABLE fileinfo (
 
 -- Insert file tracking info
 INSERT INTO fileinfo (name_of_table, filenames, loaded) VALUES
-('authors', ARRAY['./data/processed/example_processed_data_authors.csv'], false),
-('works', ARRAY['./data/processed/example_processed_data_works.csv'], false),
-('books', ARRAY['./data/processed/example_processed_data_editions.csv'], false);
+('authors', ARRAY['./data/processed/authors.csv'], false),
+('works', ARRAY['./data/processed/works.csv'], false),
+('books', ARRAY['./data/processed/editions.csv'], false);
 
 -- Create temp tables
 CREATE TEMP TABLE temp_authors (data jsonb);
@@ -66,12 +66,20 @@ WHERE NOT loaded AND name_of_table = 'books';
 \o
 \i copy_commands.sql
 
-INSERT INTO books (id, isbn13, title, published_date)
+INSERT INTO books (id, work_id, isbn10, isbn13, title, description, language, published_date, page_count)
 SELECT 
     (data->>'key')::uuid,
-    data->'isbn_13'->0,
+    (data->'works'->0->>'key')::uuid,
+    data->'isbn_10'->0#>>'{}',
+    data->'isbn_13'->0#>>'{}',
     data->>'title',
-    TO_DATE(data->>'publish_date', 'YYYY')
+    data->>'description',
+    data->'languages'->0->>'key',
+    CASE 
+        WHEN data->>'publish_date' ~ '^\d{4}$' THEN TO_DATE(data->>'publish_date', 'YYYY')
+        ELSE NULL 
+    END,
+    (data->>'number_of_pages')::INT
 FROM temp_editions;
 
 UPDATE fileinfo SET loaded = true, last_modified = current_timestamp
