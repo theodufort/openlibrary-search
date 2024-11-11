@@ -9,15 +9,20 @@ CREATE TABLE fileinfo (
 
 -- Insert file tracking info
 INSERT INTO fileinfo (name_of_table, filenames, loaded) VALUES
-('authors', ARRAY['example_processed_data_authors.csv'], false),
-('works', ARRAY['example_processed_data_works.csv'], false),
-('books', ARRAY['example_processed_data_editions.csv'], false);
+('authors', ARRAY['./data/processed/example_processed_data_authors.csv'], false),
+('works', ARRAY['./data/processed/example_processed_data_works.csv'], false),
+('books', ARRAY['./data/processed/example_processed_data_editions.csv'], false);
+
+-- Create temp tables
+CREATE TEMP TABLE temp_authors (data jsonb);
+CREATE TEMP TABLE temp_works (data jsonb);
+CREATE TEMP TABLE temp_editions (data jsonb);
 
 -- Load authors data
 \a
 \t
 \o copy_commands.sql
-SELECT format('\copy (SELECT data) FROM ''%s'' WITH (FORMAT csv, DELIMITER E''\t'', QUOTE ''|'') INTO TEMP temp_authors;', filename) 
+SELECT format('\copy temp_authors (data) FROM ''%s'' WITH (FORMAT csv, DELIMITER E''\t'', QUOTE ''|'');', filename) 
 FROM fileinfo, unnest(filenames) AS filename
 WHERE NOT loaded AND name_of_table = 'authors';
 \o
@@ -36,7 +41,7 @@ WHERE name_of_table = 'authors' AND NOT loaded;
 \a
 \t
 \o copy_commands.sql
-SELECT format('\copy (SELECT data) FROM ''%s'' WITH (FORMAT csv, DELIMITER E''\t'', QUOTE ''|'') INTO TEMP temp_works;', filename)
+SELECT format('\copy temp_works (data) FROM ''%s'' WITH (FORMAT csv, DELIMITER E''\t'', QUOTE ''|'');', filename)
 FROM fileinfo, unnest(filenames) AS filename
 WHERE NOT loaded AND name_of_table = 'works';
 \o
@@ -55,7 +60,7 @@ WHERE name_of_table = 'works' AND NOT loaded;
 \a
 \t
 \o copy_commands.sql
-SELECT format('\copy (SELECT data) FROM ''%s'' WITH (FORMAT csv, DELIMITER E''\t'', QUOTE ''|'') INTO TEMP temp_editions;', filename)
+SELECT format('\copy temp_editions (data) FROM ''%s'' WITH (FORMAT csv, DELIMITER E''\t'', QUOTE ''|'');', filename)
 FROM fileinfo, unnest(filenames) AS filename
 WHERE NOT loaded AND name_of_table = 'books';
 \o
