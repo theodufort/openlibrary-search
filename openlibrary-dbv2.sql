@@ -1,5 +1,5 @@
 -- -- switch to using the database
-\c openlibrary;
+\c books;
 
 -- -- set client encoding
 set client_encoding = 'UTF8';
