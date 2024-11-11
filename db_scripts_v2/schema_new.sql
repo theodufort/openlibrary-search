@@ -1,3 +1,9 @@
+DROP TABLE IF EXISTS book_subjects;
+DROP TABLE IF EXISTS subjects;
+DROP TABLE IF EXISTS books;
+DROP TABLE IF EXISTS works;
+DROP TABLE IF EXISTS authors;
+
 CREATE TABLE authors (
     id UUID PRIMARY KEY,
     name TEXT NOT null
