@@ -8,10 +8,24 @@ CREATE TABLE fileinfo (
 );
 
 -- Insert file tracking info
-INSERT INTO fileinfo (name_of_table, filenames, loaded) VALUES
-('authors', ARRAY['./data/processed/authors.csv'], false),
-('works', ARRAY['./data/processed/works.csv'], false),
-('books', ARRAY['./data/processed/editions.csv'], false);
+INSERT INTO fileinfo (name_of_table, filenames, loaded) 
+SELECT 'authors', array_agg(filename), false
+FROM (SELECT './data/processed/' || filename as filename 
+      FROM pg_ls_dir('./data/processed') 
+      WHERE filename LIKE 'authors_%\.csv' 
+      ORDER BY filename) f
+UNION ALL
+SELECT 'works', array_agg(filename), false
+FROM (SELECT './data/processed/' || filename as filename 
+      FROM pg_ls_dir('./data/processed') 
+      WHERE filename LIKE 'works_%\.csv'
+      ORDER BY filename) f
+UNION ALL 
+SELECT 'books', array_agg(filename), false
+FROM (SELECT './data/processed/' || filename as filename 
+      FROM pg_ls_dir('./data/processed') 
+      WHERE filename LIKE 'editions_%\.csv'
+      ORDER BY filename) f;
 
 -- Create temp tables
 CREATE TEMP TABLE temp_authors (data jsonb);
