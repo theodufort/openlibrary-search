@@ -5,22 +5,23 @@ DROP TABLE IF EXISTS works;
 DROP TABLE IF EXISTS authors;
 
 CREATE TABLE authors (
-    id UUID PRIMARY KEY,
+    id text PRIMARY KEY,
     name TEXT NOT null
 );
 
 CREATE TABLE works (
-    id UUID PRIMARY KEY,
+    id text PRIMARY KEY,
     cover_id TEXT,
-    author_id UUID REFERENCES authors(id) ON DELETE CASCADE
+    author_id TEXT REFERENCES authors(id) ON DELETE CASCADE
 );
 
 CREATE TABLE books (
-    id UUID PRIMARY KEY,
-    work_id UUID REFERENCES works(id) ON DELETE cascade,
+    id text PRIMARY KEY,
+    work_id text REFERENCES works(id) ON DELETE cascade,
     isbn10 VARCHAR(10) UNIQUE,
     isbn13 VARCHAR(13) UNIQUE NOT NULL,
     title TEXT NOT NULL,
+    subtitle TEXT,
     description TEXT,
     language VARCHAR,
     published_date DATE,
@@ -36,7 +37,7 @@ CREATE TABLE subjects (
 );
 
 CREATE TABLE book_subjects (
-    book_id UUID REFERENCES books(id) ON DELETE CASCADE,
+    book_id text REFERENCES books(id) ON DELETE CASCADE,
     subject_id UUID REFERENCES subjects(id) ON DELETE CASCADE,
     PRIMARY KEY (book_id, subject_id)
 );
