@@ -8,8 +8,6 @@ import csv
 import ctypes as ct
 import os
 
-from utils.json_utils import remove_json_objects
-
 # Optional if you want to make a smaller copy from the unzipped version for testing
 # sed -i '' '100000,$ d' ./data/unprocessed/ol_dump_editions.txt
 
@@ -62,7 +60,7 @@ def run():
 
                 if len(row) > 4:
                     writer.writerow(
-                        [row[0], row[1], row[2], row[3], remove_json_objects(row[4],["created","last_modified","latest_revision","works","type","revision"])])
+                        [row[0], row[1], row[2], row[3], row[4]])
 
             if csvoutputfile:
                 csvoutputfile.close()
