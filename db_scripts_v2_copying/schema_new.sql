@@ -1,8 +1,8 @@
-DROP TABLE IF EXISTS book_subjects;
-DROP TABLE IF EXISTS subjects;
-DROP TABLE IF EXISTS books;
-DROP TABLE IF EXISTS works;
-DROP TABLE IF EXISTS authors;
+ALTER TABLE works RENAME TO works_old;
+ALTER TABLE editions RENAME TO editions_old;
+ALTER TABLE author_works RENAME TO author_works_old;
+ALTER TABLE authors RENAME TO authors_old;
+ALTER TABLE edition_isbns RENAME TO edition_isbns_old;
 
 CREATE TABLE authors (
     id text PRIMARY KEY,
@@ -15,24 +15,26 @@ CREATE TABLE works (
     author_id TEXT REFERENCES authors(id) ON DELETE CASCADE
 );
 
-CREATE TABLE books (
-    id text PRIMARY KEY,
-    work_id text REFERENCES works(id) ON DELETE cascade,
-    isbn10 VARCHAR(10) UNIQUE,
-    isbn13 VARCHAR(13) UNIQUE NOT NULL,
-    title TEXT NOT NULL,
-    subtitle TEXT,
-    description TEXT,
-    language VARCHAR,
-    published_date DATE,
-    page_count INT,
-    title_embedding vector(1536),
-    description_embedding vector(1536)
+CREATE TABLE public.books (
+	id text NOT NULL,
+	work_id text NULL,
+	isbn10 text NULL,
+	isbn13 text NOT NULL,
+	title text NOT NULL,
+	subtitle text NULL,
+	description text NULL,
+	"language" varchar NULL,
+	published_date text NULL,
+	page_count int4 NULL,
+	title_embedding public.vector NULL,
+	description_embedding public.vector NULL,
+	CONSTRAINT books_pkey PRIMARY KEY (id),
+	CONSTRAINT unique_isbn10_isbn13 UNIQUE (isbn10, isbn13)
 );
 
 CREATE TABLE subjects (
     id UUID PRIMARY KEY,
-    name TEXT NOT NULL,
+    name TEXT NOT NULL UNIQUE,
     subject_embedding vector(1536)
 );
 

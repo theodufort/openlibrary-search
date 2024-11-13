@@ -1,6 +1,4 @@
-BEGIN;
 
--- Insert data into new `authors` table with transformation
 INSERT INTO authors (id, name)
 SELECT 
     ao.key AS id,  -- Generate a UUID for each new row
@@ -8,14 +6,8 @@ SELECT
 FROM 
     authors_old as ao;
 
--- Re-enable constraints if any were disabled (adjust if needed)
-ALTER TABLE authors ENABLE TRIGGER ALL;
 
-COMMIT;
 
-BEGIN;
-
--- Insert data into new `works` table with transformations
 INSERT INTO works (id, cover_id, author_id)
 SELECT 
     wo.key AS id,                       
@@ -24,14 +16,8 @@ SELECT
 FROM 
     works_old AS wo;      
 
--- Re-enable constraints if any were disabled (adjust if needed)
-ALTER TABLE works ENABLE TRIGGER ALL;
 
-COMMIT;
 
-BEGIN;
-
--- Assuming `books_source` is a table or view holding the source JSON data
 INSERT INTO books (
     id,
     work_id,
@@ -53,10 +39,39 @@ SELECT
     data->>'subtitle' AS subtitle,                     
     data->>'description' AS description,                  
     (data->'languages'->0->>'key') AS language,   
-    data->>'publish_date' AS published_date,     
-    COALESCE(data->>'number_of_pages',data->>'pagination')::INT AS page_count  
+    data->>'publish_date' AS publish_date,
+
+    CASE 
+        WHEN COALESCE(data->>'number_of_pages', data->>'pagination') ~ '^\d+$'
+        THEN (COALESCE(data->>'number_of_pages', data->>'pagination'))::INT
+        ELSE NULL
+    END AS page_count
 FROM 
-    editions_old; 
+    editions_old
+WHERE 
+    data->'isbn_13'->>0 IS NOT NULL
+ON CONFLICT (isbn10, isbn13) DO NOTHING;
+
+INSERT INTO subjects (id, name)
+SELECT gen_random_uuid(), subject
+FROM (
+    SELECT jsonb_array_elements_text(data->'subjects') AS subject
+    FROM editions_old
+    WHERE data->'subjects' IS NOT NULL
+) AS all_subjects
+GROUP BY subject
+HAVING COUNT(*) > 1000
+ON CONFLICT (name) DO NOTHING;
 
 
-COMMIT;
+INSERT INTO book_subjects (book_id, subject_id)
+SELECT 
+    e.key AS book_id,
+    s.id AS subject_id
+FROM 
+    editions_old AS e
+JOIN 
+    subjects AS s ON s.name = ANY(SELECT jsonb_array_elements_text(e.data->'subjects'))
+WHERE 
+    e.data->'subjects' IS NOT NULL
+ON CONFLICT DO NOTHING;
